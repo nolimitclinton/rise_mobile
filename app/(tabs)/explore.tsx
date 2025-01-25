@@ -1,109 +1,187 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  Dimensions,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+const { width, height } = Dimensions.get('window');
 
 export default function TabTwoScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const hasLaunched = await AsyncStorage.getItem('hasLaunched');
+      if (!hasLaunched) {
+        setShowOnboarding(true);
+        await AsyncStorage.setItem('hasLaunched', 'true');
+      }
+    };
+    checkOnboarding();
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
+  const handleNext = () => {
+    if (currentSlide < 2) {
+      setCurrentSlide(currentSlide + 1);
+      scrollViewRef.current?.scrollTo({ x: width * (currentSlide + 1), animated: true });
+    } else {
+      handleOnboardingComplete();
+    }
+  };
+
+  return showOnboarding ? (
+    <View style={styles.onboardingContainer}>
+      {/* ScrollView for Slides */}
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={(event) => {
+          const slide = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentSlide(slide);
+        }}
+        scrollEventThrottle={16}
+      >
+        {/* Onboarding Slides */}
+        <View style={styles.slide}>
+          <Image
+            source={require('@/assets/images/Trust.png')}
+            style={styles.image}
+          />
+        </View>
+        <View style={styles.slide}>
+          <Image
+            source={require('@/assets/images/Send_money_abroad.png')}
+            style={styles.image}
+          />
+        </View>
+        <View style={styles.slide}>
+          <Image
+            source={require('@/assets/images/Receive_Money.png')}
+            style={styles.image}
+          />
+        </View>
+      </ScrollView>
+
+      {/* Slider Indicator */}
+      <View style={styles.sliderContainer}>
+        {[0, 1, 2].map((index) => (
+          <View
+            key={index}
+            style={[
+              styles.sliderDot,
+              currentSlide === index && styles.activeSliderDot,
+            ]}
+          />
+        ))}
+      </View>
+
+      {/* Text Below Slider */}
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>
+          {currentSlide === 0
+            ? 'Trusted by millions of people, part of one part'
+            : currentSlide === 1
+            ? 'Spend money abroad, and track your expense'
+            : 'Receive Money From Anywhere In The World'}
+        </Text>
+      </View>
+
+      {/* Next Button */}
+      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+        <Text style={styles.nextButtonText}>Next</Text> 
+      </TouchableOpacity>
+    </View>
+  ) : (
+    <View style={styles.container}>
+      <Text>Explore Screen Content</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  onboardingContainer: {
+    flex: 1,
+    backgroundColor: '#FFF',
   },
-  titleContainer: {
+  slide: {
+    width,
+    height: height * 0.6, 
+    justifyContent: 'center', 
+    alignItems: 'center',
+  },
+  image: {
+    width: '80%',
+    height: '50%', 
+    resizeMode: 'contain',
+  },
+  sliderContainer: {
+    position: 'absolute',
+    top: height * 0.60, 
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sliderDot: {
+    width: 30,
+    height: 6,
+    borderRadius: 4,
+    backgroundColor: '#CCC',
+    marginHorizontal: 5,
+    transform: [{ scale: 1.2 }],
+  },
+  activeSliderDot: {
+    width:20,
+    backgroundColor: '#007BFF',
+    transform: [{ scale: 0.9 }],
+  },
+  textContainer: {
+    position: 'absolute', 
+    top: height * 0.65, 
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  nextButton: {
+    position: 'absolute',
+    bottom: 80, 
+    left: 20,
+    right: 20,
+    backgroundColor: '#007BFF',
+    padding: 15,
+    borderRadius: 100,
+    alignItems: 'center',
+  },
+  nextButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
