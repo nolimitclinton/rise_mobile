@@ -5,15 +5,16 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Modal,
-  Alert,
   ImageBackground,
+  Alert,
 } from 'react-native';
+import { router } from 'expo-router'; 
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
-export default function FormScreen() {
+
+const IndexScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
@@ -34,7 +35,7 @@ export default function FormScreen() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in both fields');
       return;
@@ -45,13 +46,15 @@ export default function FormScreen() {
       return;
     }
 
-    setModalVisible(true);
+    
+    await AsyncStorage.removeItem('hasLaunched'); 
+
+    router.replace('/explore'); 
   };
 
   return (
     <ImageBackground
-      source={require("../../assets/images/rise_splash-icon.png")}
-
+      source={require('../../assets/images/rise_splash-icon.png')}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>
@@ -85,31 +88,10 @@ export default function FormScreen() {
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Submit</Text>
         </TouchableOpacity>
-
-        <Modal
-          transparent={true}
-          visible={modalVisible}
-          animationType="slide"
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalText}>Hello!</Text>
-              <Text style={styles.modalText}>Email: {email}</Text>
-              <Text style={styles.modalText}>Password: {password}</Text>
-              <TouchableOpacity
-                style={[styles.button, styles.closeButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.buttonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </View>
     </ImageBackground>
   );
-}
+};
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -120,13 +102,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional for a dark overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
   },
   label: {
     fontSize: 16,
     marginBottom: 8,
     fontWeight: '600',
-    color: '#fff', // Adjust for readability on the background
+    color: '#fff', 
   },
   input: {
     height: 40,
@@ -152,30 +134,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
-  closeButton: {
-    backgroundColor: '#76ff36',
-    marginTop: 10,
-  },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  modalText: {
-    fontSize: 14,
-    marginBottom: 10,
-  },
 });
+
+export default IndexScreen;
