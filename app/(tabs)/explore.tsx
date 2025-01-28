@@ -12,6 +12,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
+const onboardingData = [
+  {
+    image: require('@/assets/images/Trust.png'),
+    text: 'Trusted by millions of people, part of one part',
+  },
+  {
+    image: require('@/assets/images/Send_money_abroad.png'),
+    text: 'Spend money abroad, and track your expense',
+  },
+  {
+    image: require('@/assets/images/Receive_Money.png'),
+    text: 'Receive Money From Anywhere In The World',
+  },
+];
+
 export default function TabTwoScreen() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -33,16 +48,17 @@ export default function TabTwoScreen() {
   };
 
   const handleNext = () => {
-    if (currentSlide < 2) {
-      setCurrentSlide(currentSlide + 1);
-      scrollViewRef.current?.scrollTo({ x: width * (currentSlide + 1), animated: true });
+    const nextSlide = currentSlide + 1;
+    if (nextSlide < onboardingData.length) {
+      setCurrentSlide(nextSlide);
+      scrollViewRef.current?.scrollTo({ x: width * nextSlide, animated: true });
     } else {
       handleOnboardingComplete();
     }
   };
 
   return showOnboarding ? (
-    <View style={styles.onboardingContainer}>
+    <View style={styles.container}>
       {/* ScrollView for Slides */}
       <ScrollView
         ref={scrollViewRef}
@@ -50,35 +66,21 @@ export default function TabTwoScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={(event) => {
-          const slide = Math.round(event.nativeEvent.contentOffset.x / width);
+          const slide = Math.floor(event.nativeEvent.contentOffset.x / width);
           setCurrentSlide(slide);
         }}
         scrollEventThrottle={16}
       >
-        {/* Onboarding Slides */}
-        <View style={styles.slide}>
-          <Image
-            source={require('@/assets/images/Trust.png')}
-            style={styles.image}
-          />
-        </View>
-        <View style={styles.slide}>
-          <Image
-            source={require('@/assets/images/Send_money_abroad.png')}
-            style={styles.image}
-          />
-        </View>
-        <View style={styles.slide}>
-          <Image
-            source={require('@/assets/images/Receive_Money.png')}
-            style={styles.image}
-          />
-        </View>
+        {onboardingData.map((item, index) => (
+          <View key={index} style={styles.slide}>
+            <Image source={item.image} style={styles.image} />
+          </View>
+        ))}
       </ScrollView>
 
-      {/* Slider Indicator */}
+      {/* Slider Indicators */}
       <View style={styles.sliderContainer}>
-        {[0, 1, 2].map((index) => (
+        {onboardingData.map((_, index) => (
           <View
             key={index}
             style={[
@@ -91,18 +93,18 @@ export default function TabTwoScreen() {
 
       {/* Text Below Slider */}
       <View style={styles.textContainer}>
-        <Text style={styles.title}>
-          {currentSlide === 0
-            ? 'Trusted by millions of people, part of one part'
-            : currentSlide === 1
-            ? 'Spend money abroad, and track your expense'
-            : 'Receive Money From Anywhere In The World'}
-        </Text>
+        <Text style={styles.title}>{onboardingData[currentSlide].text}</Text>
       </View>
 
       {/* Next Button */}
-      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextButtonText}>Next</Text> 
+      <TouchableOpacity
+        style={styles.nextButton}
+        onPress={handleNext}
+        accessible={true}
+        accessibilityLabel="Next"
+        accessibilityRole="button"
+      >
+        <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
     </View>
   ) : (
@@ -113,24 +115,24 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
-  onboardingContainer: {
+  container: {
     flex: 1,
     backgroundColor: '#FFF',
   },
   slide: {
     width,
-    height: height * 0.6, 
-    justifyContent: 'center', 
+    height: height * 0.6,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   image: {
     width: '80%',
-    height: '50%', 
+    height: '50%',
     resizeMode: 'contain',
   },
   sliderContainer: {
     position: 'absolute',
-    top: height * 0.60, 
+    top: height * 0.6,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -147,13 +149,13 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.2 }],
   },
   activeSliderDot: {
-    width:20,
+    width: 20,
     backgroundColor: '#007BFF',
     transform: [{ scale: 0.9 }],
   },
   textContainer: {
-    position: 'absolute', 
-    top: height * 0.65, 
+    position: 'absolute',
+    top: height * 0.65,
     left: 20,
     right: 20,
     alignItems: 'center',
@@ -166,7 +168,7 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     position: 'absolute',
-    bottom: 80, 
+    bottom: 80,
     left: 20,
     right: 20,
     backgroundColor: '#007BFF',
@@ -178,10 +180,5 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
