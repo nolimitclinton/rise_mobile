@@ -9,6 +9,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import { Poppins_400Regular, Poppins_700Bold } from '@expo-google-fonts/poppins';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,6 +35,12 @@ export default function TabTwoScreen() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // Load the Poppins font
+  const [fontsLoaded] = useFonts({
+    PoppinsRegular: Poppins_400Regular,
+    PoppinsBold: Poppins_700Bold,
+  });
+
   useEffect(() => {
     const checkOnboarding = async () => {
       const hasLaunched = await AsyncStorage.getItem('hasLaunched');
@@ -42,6 +51,16 @@ export default function TabTwoScreen() {
     };
     checkOnboarding();
   }, []);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null; 
+  }
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
@@ -91,7 +110,7 @@ export default function TabTwoScreen() {
         ))}
       </View>
 
-      {/* Text Below Slider */}
+      {/* Onboarding Text */}
       <View style={styles.textContainer}>
         <Text style={styles.title}>{onboardingData[currentSlide].text}</Text>
       </View>
@@ -161,10 +180,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 40,
+    fontSize: 40, 
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
+    fontFamily: 'PoppinsBold', 
   },
   nextButton: {
     position: 'absolute',
@@ -180,5 +200,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
+    fontFamily: 'PoppinsRegular', 
   },
 });
